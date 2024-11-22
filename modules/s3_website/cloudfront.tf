@@ -1,27 +1,41 @@
 ########################################
 # Create CloudFront
 ########################################
+resource "aws_cloudfront_origin_access_control" "s3_oac" {
+  name                              = "S3_OAC"
+  description                       = "OAC for S3"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 resource "aws_cloudfront_distribution" "website_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
-  default_root_object = var.index_document
+  default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket_website_configuration.website_bucket_config.website_endpoint
-    origin_id   = var.bucket_name
+    domain_name = aws_s3_bucket.website_bucket.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.website_bucket.bucket
+    origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
+}
 
-    custom_origin_config {
-      origin_protocol_policy   = "http-only"
-      origin_ssl_protocols     = ["TLSv1.2"]
-      http_port                = 80
-      https_port               = 443
-    }
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.logging_bucket.bucket_regional_domain_name
+    prefix          = "logging"
   }
-
+/*
+  custom_error_response {
+    error_code = 403
+    response_code = 403
+    response_page_path = "/error.html"
+  }
+*/
   custom_error_response {
     error_code = 404
     response_code = 404
-    response_page_path = "/${var.error_document}"
+    response_page_path = "/error.html"
   }
 
   aliases = [ var.domain ]
@@ -38,7 +52,7 @@ resource "aws_cloudfront_distribution" "website_distribution" {
 
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.website_bucket.bucket
+    target_origin_id = aws_s3_bucket.website_bucket.id
 
     compress = true
 

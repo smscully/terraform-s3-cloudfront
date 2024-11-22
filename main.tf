@@ -1,36 +1,28 @@
 ########################################
 # Configure AWS Provider
 ########################################
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 provider "aws" {
-  region  = "us-east-1"
-  profile = "default"
+  region = var.region
+  profile = var.profile
 }
 
 ########################################
-# Call S3 Website Module
+# Call Static Website Module
 ########################################
 module "s3_website" {
-  source           = "./modules/s3-website"
-  bucket_name = "russetleaf.com.static.website"
-  index_document = "index.html"
-  error_document = "404.html"
-}
-
-########################################
-# Call CloudFront Module
-########################################
-module "cloudfront" {
-  source           = "./modules/cloudfront"
-  bucket_name = "russetleaf.com.static.website"
-  index_document = "index.html"
-  error_document = "404.html"
-  domain             = ""
-}
-
-########################################
-# Call Route 53 and ACM Module
-########################################
-module "Ingress_Rule_Pub" {
-  source            = "./modules/sg_rule"
-  domain             = ""
+  source           = "./modules/s3_website"
+  bucket_name            = "${var.domain}-website-${var.stage}"
+  bucket_name_logging            = "${var.domain}-logging-${var.stage}"
+  zone_id = var.zone_id
+  domain                 = var.domain
+  source_files = var.source_files
 }

@@ -1,19 +1,6 @@
 ########################################
-# Create Route 53 and ACM
+# Create Route 53 Record
 ########################################
-resource "aws_acm_certificate" "domain_cert" {
-  domain_name       = var.domain
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_route53_zone" "main_hosted_zone" {
-  name = var.domain
-}
-
 resource "aws_route53_record" "domain_verification_record" {
   for_each = {
     for dvo in aws_acm_certificate.domain_cert.domain_validation_options : dvo.domain_name => {
@@ -23,7 +10,7 @@ resource "aws_route53_record" "domain_verification_record" {
     }
   }
 
-  zone_id         = aws_route53_zone.main_hosted_zone.zone_id
+  zone_id         = var.zone_id
   type            = each.value.type
   name            = each.value.name
   records         = [each.value.record]
@@ -32,7 +19,7 @@ resource "aws_route53_record" "domain_verification_record" {
 }
 
 resource "aws_route53_record" "website_dns_record" {
-  zone_id = aws_route53_zone.main_hosted_zone.id
+  zone_id         = var.zone_id
   name    = var.domain
   type    = "A"
 
