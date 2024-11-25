@@ -25,16 +25,16 @@ resource "aws_cloudfront_distribution" "website_distribution" {
     bucket          = aws_s3_bucket.logging_bucket.bucket_regional_domain_name
     prefix          = "logging"
   }
-/*
-  custom_error_response {
-    error_code = 403
-    response_code = 403
-    response_page_path = "/error.html"
-  }
-*/
+
   custom_error_response {
     error_code = 404
     response_code = 404
+    response_page_path = "/error.html"
+  }
+
+  custom_error_response {
+    error_code = 500
+    response_code = 500
     response_page_path = "/error.html"
   }
 

@@ -14,7 +14,16 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 }
 
 resource "aws_s3_bucket" "website_bucket" {
-  bucket = var.bucket_name
+  bucket = var.bucket_name_website
+}
+
+resource "aws_s3_object" "source_files" {
+  bucket                 = aws_s3_bucket.website_bucket.bucket
+  for_each = fileset("${var.source_files}/", "**/*.*")
+  key          = each.value
+  source       = "${var.source_files}/${each.value}"
+  server_side_encryption = "AES256"
+  content_type = "text/html"
 }
 
 resource "aws_s3_bucket_website_configuration" "website_bucket_config" {
@@ -27,15 +36,6 @@ resource "aws_s3_bucket_website_configuration" "website_bucket_config" {
   error_document {
     key = "error.html"
   }
-}
-
-resource "aws_s3_object" "source_files" {
-  bucket                 = aws_s3_bucket.website_bucket.bucket
-  for_each = fileset("${var.source_files}/", "**/*.*")
-  key          = each.value
-  source       = "${var.source_files}/${each.value}"
-  server_side_encryption = "AES256"
-  content_type = "text/html"
 }
 
 resource "aws_s3_bucket_public_access_block" "website_bucket_access" {

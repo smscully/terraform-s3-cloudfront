@@ -14,7 +14,7 @@ variable "profile" {
   type = string
 }
 
-variable "stage" {
+variable "env" {
   type = string
 }
 

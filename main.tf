@@ -20,8 +20,8 @@ provider "aws" {
 ########################################
 module "s3_website" {
   source           = "./modules/s3_website"
-  bucket_name            = "${var.domain}-website-${var.stage}"
-  bucket_name_logging            = "${var.domain}-logging-${var.stage}"
+  bucket_name_website            = "${var.domain}-website-${var.env}"
+  bucket_name_logging            = "${var.domain}-logging-${var.env}"
   zone_id = var.zone_id
   domain                 = var.domain
   source_files = var.source_files

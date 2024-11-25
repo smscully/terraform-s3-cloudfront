@@ -3,13 +3,13 @@ variable "zone_id" {
   type        = string
 }
 
-variable "bucket_name_logging" {
-  description = "Name of the logging bucket."
+variable "bucket_name_website" {
+  description = "Bucket name for website files."
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Bucket name of the website."
+variable "bucket_name_logging" {
+  description = "Bucket name for log files."
   type        = string
 }
 
