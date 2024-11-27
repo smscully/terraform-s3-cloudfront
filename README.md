@@ -27,11 +27,14 @@ The script creates two S3 Buckets, one for website files and another for log fil
 To provide a complete stand-alone solution, the Terraform script creates a logging bucket specifically for the CloudFront distribution. The script should be modified to point to an existing logging bucket if preferred. Moreover, the logging bucket `force_destroy` argument is set to `true` so that all of the script resources are deleted when the `terraform destroy` command is issued. To avoid losing log files, this argument can be changed to `false`. 
 
 ### CloudFront Distribution
-The code uses a `for_each` to create custom error responses for HTTP response codes. All responses return the same error page, following the principle of providing the least information disclosure as possible. (provide link to OWASP)
+A CloudFront Distribution is created that uses the S3 website bucket as its origin. A CloudFront Origin Access Control (OAC) secures the S3 origin by limiting access to only the designated distribution. To retain detailed user request data, the distribution saves standard logs to the S3 logging bucket. While no geographic restrictions are imposed, a restrictions block is included if constraints need to be added in the future.
+
+CloudFront supports custom error pages for certain client and server error HTTP status codes, specifically 400, 403, 404, 405, 414, 416, 500, 501, 502, 503, and 504. (See the [AWS Documentation](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/creating-custom-error-pages.html) for more information.) Following the best practice of limiting internal error messages ([OWASP Improper Error Handling](https://owasp.org/www-community/Improper_Error_Handling)), the script uses a dynamic block with a `for_each` meta-argument to create custom error responses for each of these HTTP status codes. All responses return the same custom error page (error.html), but specific pages for each response code could be implemented by modifying the `http_response` variable to support a list of maps and adding a key-value pair to store the name of the specific error page.
+
+Because SSL/TLS is configured for communication with users, the cache behavior view protocol policy is set to Redirect HTTP to HTTPS, ensuring that HTTP `GET` and `HEAD` request are atutomatically redirected to HTTPS. The distribution's custom SSL certificate value is configured for the ACM certificate created by the Terraform script (see ACM X.509 Certificate section below), and the distribution's security policy value is set to TLSv1.2_2021, which is the latest version of the TLS protocol supported by CloudFront.
 
 ### Route 53 Records
 Two Route 53 records are created, both in the Hosted Zone identified by the `zone_id` variable in the `dev.tfvars` file. The first record added is a CNAME record. This record is created by mapping the name, record, and type fields from the ACM certificate's corresponding CNAME record, which record is automatically created because the ACM certificate's validation method is set to DNS.
-
 The second record added is an A record for the domain identified by the `domain` variable in the `dev.tfvars` file. This record serves as an alias to the CloudFront distribution.
 
 To reduce costs, there is no resource block to create a Hosted Zone. Instead, the script assumes that a Hosted Zone for the primary domain already exits and that the domain being created is a subdomain, e.g. subdomain.primarydomain.com. 
@@ -50,9 +53,11 @@ The resource block includes a Terraform `lifecycle` meta-argument that sets `cre
 + Established connection to an AWS account
 
 ### Installation
-To install the script, either clone the [terraform-s3-website](.) repo or download the files to the local host. 
+To install the script, either clone the [terraform-s3-cloudfront](.) repo or download the files to the local host. 
 
 ## Usage
+As a preliminary step, modify the `dev.tfvars` as appropriate for the current environment. Of particular importance, the `zone_id` variable must be updated to include the ID of an existing Hosted Zone and the `domain` variable must be updated to a secondary domain of the primary domain associated with the Hosted Zone. The [dev.tfvars](./dev.tfvars) file in the repository has placeholder values for these variables.
+
 To run the script, follow standard Terraform practices by navigating to the directory that holds the `main.tf` script, then running the commands to initialize and apply the script:
 
 ```bash

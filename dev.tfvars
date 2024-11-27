@@ -1,0 +1,6 @@
+zone_id      = "AMAZONZONEIDEXAMMPLE1"
+domain       = "s3.yourprimarydomain.com"
+source_files = "website"
+profile      = "default"
+env          = "dev"
+region       = "us-east-1"

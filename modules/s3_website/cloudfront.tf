@@ -15,10 +15,10 @@ resource "aws_cloudfront_distribution" "website_distribution" {
   default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket.website_bucket.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.website_bucket.bucket
+    domain_name              = aws_s3_bucket.website_bucket.bucket_regional_domain_name
+    origin_id                = aws_s3_bucket.website_bucket.bucket
     origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
-}
+  }
 
   logging_config {
     include_cookies = false
@@ -26,19 +26,17 @@ resource "aws_cloudfront_distribution" "website_distribution" {
     prefix          = "logging"
   }
 
-  custom_error_response {
-    error_code = 404
-    response_code = 404
-    response_page_path = "/error.html"
+  dynamic "custom_error_response" {
+    iterator = code
+    for_each = var.http_response
+    content {
+      error_code         = code.value
+      response_code      = code.value
+      response_page_path = "/error.html"
+    }
   }
 
-  custom_error_response {
-    error_code = 500
-    response_code = 500
-    response_page_path = "/error.html"
-  }
-
-  aliases = [ var.domain ]
+  aliases = [var.domain]
 
   restrictions {
     geo_restriction {

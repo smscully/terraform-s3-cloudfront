@@ -23,3 +23,9 @@ variable "source_files" {
   type        = string
   default     = "website"
 }
+
+variable "http_response" {
+  type    = list(number)
+  default = [400, 403, 404, 405, 414, 416, 500, 501, 502, 503, 504]
+}
+

@@ -19,7 +19,7 @@ resource "aws_route53_record" "domain_verification_record" {
 }
 
 resource "aws_route53_record" "website_dns_record" {
-  zone_id         = var.zone_id
+  zone_id = var.zone_id
   name    = var.domain
   type    = "A"
 

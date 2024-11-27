@@ -7,7 +7,7 @@ variable "domain" {
 }
 
 variable "source_files" {
-  type    = string
+  type = string
 }
 
 variable "profile" {
